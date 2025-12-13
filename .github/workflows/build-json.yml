@@ -6,12 +6,11 @@ on:
       - "data/*.xlsx"
 
 jobs:
-  build-json:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -19,17 +18,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install pandas openpyxl
+        run: pip install pandas openpyxl
 
-      - name: Convert Excel to JSON
-        run: |
-          python scripts/excel_to_exam_json.py
+      - name: Build JSON
+        run: python scripts/excel_to_exam_json.py
 
-      - name: Commit generated JSON
+      - name: Commit JSON
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           git add data/*.json
-          git commit -m "Auto-generate exam JSON from Excel" || echo "No changes"
+          git commit -m "Auto build exam JSON from Excel" || echo "No changes"
           git push
