@@ -1,36 +1,35 @@
-name: Build JSON from Excel
+name: Build Exam JSON from Excel
 
 on:
   push:
     paths:
       - "data/*.xlsx"
-      - "scripts/excel_to_json.py"
-  workflow_dispatch:
 
 jobs:
-  build:
+  build-json:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
-      - name: Install Python Dependencies
+      - name: Install dependencies
         run: |
           pip install pandas openpyxl
 
-      - name: Run Excel → JSON Conversion
-        run: python scripts/excel_to_json.py
-
-      - name: Commit & Push JSON Output
+      - name: Convert Excel to JSON
         run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
+          python scripts/excel_to_exam_json.py
+
+      - name: Commit generated JSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add data/*.json
-          git commit -m "Auto update JSON from Excel" || echo "No changes to commit"
+          git commit -m "Auto-generate exam JSON from Excel" || echo "No changes"
           git push
