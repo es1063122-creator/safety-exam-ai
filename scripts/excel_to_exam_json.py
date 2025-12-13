@@ -2,68 +2,61 @@ import json
 import pandas as pd
 from pathlib import Path
 
-EXAM_INFO = {
-    "industrial": {
-        "examName": "산업안전기사"
-    },
-    "construction": {
-        "examName": "건설안전기사"
-    }
-}
-
-def convert_excel_to_cbt_json(excel_path: Path, json_path: Path, exam_type: str):
+def build_exam_json(excel_path, exam_type, exam_name, output_path):
     df = pd.read_excel(excel_path)
 
-    subjects = {}
+    # 🔥 NaN 제거
+    df = df.fillna("")
 
-    for _, row in df.iterrows():
-        subject_id = int(row["subject"])
-        subject_name = f"{subject_id}과목"
+    subjects = []
 
-        if subject_id not in subjects:
-            subjects[subject_id] = {
-                "id": subject_id,
-                "name": subject_name,
-                "questions": []
-            }
+    for subject_id in sorted(df["subject"].unique()):
+        sdf = df[df["subject"] == subject_id]
 
-        question = {
-            "id": row["id"],
-            "question": row["question"],
-            "options": [
-                row["option1"],
-                row["option2"],
-                row["option3"],
-                row["option4"],
-            ],
-            "answer": int(row["answer"])
-        }
+        questions = []
+        for _, row in sdf.iterrows():
+            questions.append({
+                "id": row["id"],
+                "question": row["question"],
+                "options": [
+                    row["option1"],
+                    row["option2"],
+                    row["option3"],
+                    row["option4"],
+                ],
+                "answer": int(row["answer"]),
+            })
 
-        subjects[subject_id]["questions"].append(question)
+        subjects.append({
+            "id": int(subject_id),
+            "name": f"{subject_id}과목",
+            "questions": questions,
+        })
 
     exam_json = {
         "examType": exam_type,
-        "examName": EXAM_INFO[exam_type]["examName"],
-        "subjects": list(subjects.values())
+        "examName": exam_name,
+        "subjects": subjects,
     }
 
-    with open(json_path, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(exam_json, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ 생성 완료: {json_path}")
-
+    print(f"✅ CBT JSON 생성 완료: {output_path}")
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parents[1] / "data"
 
-    convert_excel_to_cbt_json(
+    build_exam_json(
         root / "industrial.xlsx",
+        "industrial",
+        "산업안전기사",
         root / "industrial.json",
-        "industrial"
     )
 
-    convert_excel_to_cbt_json(
+    build_exam_json(
         root / "construction.xlsx",
+        "construction",
+        "건설안전기사",
         root / "construction.json",
-        "construction"
     )
