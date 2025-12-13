@@ -16,9 +16,7 @@ def parse_question_block(block: str):
     id_match = re.search(r'id:\s*"([^"]+)"', block)
     qid = id_match.group(1) if id_match else None
 
-    license_type = (
-        "industrial" if "industrial" in block else "construction"
-    )
+    license_type = "industrial" if "industrial" in block else "construction"
 
     subject_match = re.search(r'subject:\s*(\d+)', block)
     subject = int(subject_match.group(1)) if subject_match else 1
